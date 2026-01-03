@@ -45,12 +45,12 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ categories, onAddExpens
         setNote('');
     };
     
-    const commonInputClass = "mt-1 block w-full rounded-md bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm";
+    const commonInputClass = "mt-1 block w-full rounded-lg border-slate-300 bg-white dark:bg-slate-700/80 dark:border-slate-600 px-3 py-2 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm";
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
             <h3 className="text-lg font-medium leading-6 text-slate-900 dark:text-white">新增花費</h3>
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
                 <div>
                     <label htmlFor="date" className="block text-sm font-medium text-slate-700 dark:text-slate-300">日期</label>
                     <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} className={commonInputClass} required />
@@ -77,7 +77,7 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ categories, onAddExpens
                     <label htmlFor="note" className="block text-sm font-medium text-slate-700 dark:text-slate-300">備註 (可選)</label>
                     <textarea id="note" value={note} onChange={e => setNote(e.target.value)} rows={2} className={commonInputClass}></textarea>
                 </div>
-                <button type="submit" className="w-full flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400" disabled={categories.length === 0}>
+                <button type="submit" className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 transition-colors" disabled={categories.length === 0}>
                     <PlusIcon /> 新增花費
                 </button>
             </form>

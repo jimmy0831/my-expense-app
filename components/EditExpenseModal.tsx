@@ -9,9 +9,10 @@ interface EditExpenseModalProps {
     expenseToEdit: JoinedExpense | null;
     categories: Category[];
     onUpdateExpense: (expenseId: string, updatedData: Omit<Expense, 'id' | 'created_at'>) => void;
+    onDeleteExpense: (expenseId: string) => void;
 }
 
-const EditExpenseModal: React.FC<EditExpenseModalProps> = ({ isOpen, onClose, expenseToEdit, categories, onUpdateExpense }) => {
+const EditExpenseModal: React.FC<EditExpenseModalProps> = ({ isOpen, onClose, expenseToEdit, categories, onUpdateExpense, onDeleteExpense }) => {
     const [date, setDate] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [amount, setAmount] = useState('');
@@ -50,15 +51,22 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({ isOpen, onClose, ex
         onUpdateExpense(expenseToEdit.id, updatedData);
         onClose();
     };
+
+    const handleDelete = () => {
+        if (expenseToEdit) {
+            onDeleteExpense(expenseToEdit.id);
+            onClose();
+        }
+    };
     
-    const commonInputClass = "mt-1 block w-full rounded-md bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm";
+    const commonInputClass = "mt-1 block w-full rounded-lg border-slate-300 bg-white dark:bg-slate-700/80 dark:border-slate-600 px-3 py-2 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm";
 
     if (!isOpen) return null;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="編輯花費紀錄">
             <div className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
                      <div>
                         <label htmlFor="edit-date" className="block text-sm font-medium text-slate-700 dark:text-slate-300">日期</label>
                         <input type="date" id="edit-date" value={date} onChange={e => setDate(e.target.value)} className={commonInputClass} required />
@@ -85,13 +93,18 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({ isOpen, onClose, ex
                         <label htmlFor="edit-note" className="block text-sm font-medium text-slate-700 dark:text-slate-300">備註 (可選)</label>
                         <textarea id="edit-note" value={note} onChange={e => setNote(e.target.value)} rows={2} className={commonInputClass}></textarea>
                     </div>
-                    <div className="flex justify-end gap-2 pt-4">
-                        <button type="button" onClick={onClose} className="py-2 px-4 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
-                            取消
+                    <div className="flex justify-between items-center pt-4">
+                        <button type="button" onClick={handleDelete} className="py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900/75 transition-colors">
+                            刪除紀錄
                         </button>
-                        <button type="submit" className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                            儲存變更
-                        </button>
+                        <div className="flex justify-end gap-2">
+                            <button type="button" onClick={onClose} className="py-2 px-4 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
+                                取消
+                            </button>
+                            <button type="submit" className="py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                                儲存變更
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

@@ -107,6 +107,20 @@ export default function App() {
         }
     }, []);
 
+    const handleDeleteExpense = useCallback(async (expenseId: string) => {
+        if (!window.confirm('確定要刪除這筆紀錄嗎？此操作無法復原。')) {
+            return;
+        }
+        
+        const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
+
+        if (error) {
+            setError(error.message);
+        } else {
+            setExpenses(prev => prev.filter(exp => exp.id !== expenseId));
+        }
+    }, []);
+
     const openModalForDate = useCallback((date: string) => {
         setModalDate(date);
     }, []);
@@ -149,7 +163,7 @@ export default function App() {
                                     <CalendarView expenses={joinedExpenses} onDateSelect={openModalForDate} selectedDate={modalDate}/>
                                 </div>
                                 <div className="lg:col-span-2 xl:col-span-3">
-                                    <ExpenseList expenses={joinedExpenses} onEdit={setEditingExpense} />
+                                    <ExpenseList expenses={joinedExpenses} onEdit={setEditingExpense} onDelete={handleDeleteExpense} />
                                 </div>
                             </div>
                         </div>
@@ -166,7 +180,7 @@ export default function App() {
             </main>
             <Tabs activeTab={activeTab} onTabClick={setActiveTab} />
             <Modal isOpen={!!modalDate} onClose={closeModal} title={`${modalDate} 花費明細`}>
-                <ExpenseList expenses={modalExpenses} isModal={true} onEdit={setEditingExpense} />
+                <ExpenseList expenses={modalExpenses} isModal={true} onEdit={setEditingExpense} onDelete={handleDeleteExpense} />
             </Modal>
             <EditExpenseModal 
                 isOpen={!!editingExpense}
@@ -174,6 +188,7 @@ export default function App() {
                 expenseToEdit={editingExpense}
                 categories={categories}
                 onUpdateExpense={handleUpdateExpense}
+                onDeleteExpense={handleDeleteExpense}
             />
         </div>
     );
