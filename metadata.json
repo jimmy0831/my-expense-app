@@ -1,0 +1,5 @@
+{
+  "name": "MyExpenseApp",
+  "description": "A progressive web app to track personal expenses with category management, calendar view, and data visualization charts.",
+  "requestFramePermissions": []
+}
