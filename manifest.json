@@ -1,0 +1,22 @@
+
+{
+  "name": "MyExpenseApp",
+  "short_name": "MyExpense",
+  "description": "A progressive web app to track personal expenses with category management, calendar view, and data visualization charts.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
