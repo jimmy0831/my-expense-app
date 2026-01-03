@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import { JoinedExpense } from '../types';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ChartPieIcon, ListIcon } from './icons';
+import { ChartPieIcon, ListIcon, NoDataIcon } from './icons';
 
 interface ChartsProps {
     expenses: JoinedExpense[];
@@ -75,15 +75,14 @@ const Charts: React.FC<ChartsProps> = ({ expenses }) => {
         );
     };
 
-    const commonInputClass = "mt-1 block w-full rounded-md bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm";
+    const commonInputClass = "mt-1 block w-full rounded-lg border-slate-300 bg-white dark:bg-slate-700/80 dark:border-slate-600 px-3 py-2 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm";
     
     const chartTitleDateRange = `${startDate.replace(/-/g, '/')} - ${endDate.replace(/-/g, '/')}`;
 
     return (
         <div className="space-y-8">
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                <h3 className="text-lg font-medium leading-6 text-slate-900 dark:text-white">選擇日期範圍</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label htmlFor="start-date" className="block text-sm font-medium text-slate-700 dark:text-slate-300">開始日期</label>
                         <input type="date" id="start-date" value={startDate} onChange={e => setStartDate(e.target.value)} max={endDate} className={commonInputClass} />
@@ -96,14 +95,18 @@ const Charts: React.FC<ChartsProps> = ({ expenses }) => {
             </div>
 
             {filteredExpenses.length === 0 ? (
-                <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 text-center">
-                    <h3 className="text-lg font-medium text-slate-500 dark:text-slate-400">此範圍內無資料可顯示。</h3>
-                    <p className="text-sm text-slate-400 dark:text-slate-500">請調整日期或新增一些花費紀錄。</p>
+                <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-12 text-center flex flex-col items-center justify-center">
+                    <NoDataIcon />
+                    <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">此範圍內無資料</h3>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">請嘗試擴大您的日期範圍，或新增花費紀錄。</p>
                 </div>
             ) : (
                 <>
                     <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <h3 className="text-lg font-medium leading-6 text-slate-900 dark:text-white flex items-center gap-2"><ChartPieIcon /> 消費佔比 ({chartTitleDateRange})</h3>
+                         <div>
+                            <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2"><ChartPieIcon /> 消費佔比</h3>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{chartTitleDateRange}</p>
+                        </div>
                         <div className="w-full h-80 mt-4">
                             <ResponsiveContainer>
                                 <PieChart>
@@ -117,7 +120,10 @@ const Charts: React.FC<ChartsProps> = ({ expenses }) => {
                         </div>
                     </div>
                     <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-                        <h3 className="text-lg font-medium leading-6 text-slate-900 dark:text-white flex items-center gap-2"><ListIcon/> 每日花費 ({chartTitleDateRange})</h3>
+                        <div>
+                            <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2"><ListIcon/> 每日花費趨勢</h3>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{chartTitleDateRange}</p>
+                        </div>
                         <div className="w-full h-80 mt-4">
                             <ResponsiveContainer>
                                 <BarChart data={barData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>

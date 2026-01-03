@@ -8,7 +8,7 @@ interface EditExpenseModalProps {
     onClose: () => void;
     expenseToEdit: JoinedExpense | null;
     categories: Category[];
-    onUpdateExpense: (expenseId: string, updatedData: Omit<Expense, 'id' | 'created_at'>) => void;
+    onUpdateExpense: (expenseId: string, updatedData: Omit<Expense, 'id' | 'created_at' | 'user_id'>) => void;
     onDeleteExpense: (expenseId: string) => void;
 }
 
@@ -25,8 +25,8 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({ isOpen, onClose, ex
             setDate(expenseToEdit.date);
             setCategoryId(expenseToEdit.category_id);
             setAmount(String(expenseToEdit.amount));
-            setMerchant(expenseToEdit.merchant);
-            setItem(expenseToEdit.item);
+            setMerchant(expenseToEdit.merchant || '');
+            setItem(expenseToEdit.item || '');
             setNote(expenseToEdit.note || '');
         }
     }, [expenseToEdit]);
@@ -48,6 +48,7 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({ isOpen, onClose, ex
             item,
             note: note || null,
         };
+        // FIX: The type for onUpdateExpense now correctly matches updatedData, which doesn't include user_id.
         onUpdateExpense(expenseToEdit.id, updatedData);
         onClose();
     };

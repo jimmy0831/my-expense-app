@@ -5,7 +5,7 @@ import { PlusIcon } from './icons';
 
 interface AddExpenseFormProps {
     categories: Category[];
-    onAddExpense: (expense: Omit<Expense, 'id' | 'created_at'>) => void;
+    onAddExpense: (expense: Omit<Expense, 'id' | 'created_at' | 'user_id'>) => void;
 }
 
 const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ categories, onAddExpense }) => {
@@ -30,6 +30,7 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ categories, onAddExpens
             alert('請填寫日期、類別和金額。');
             return;
         }
+        // FIX: The type for onAddExpense now correctly matches this object, which doesn't include user_id.
         onAddExpense({
             date,
             category_id: categoryId,
@@ -49,7 +50,7 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ categories, onAddExpens
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium leading-6 text-slate-900 dark:text-white">新增花費</h3>
+            <h3 className="text-lg font-bold leading-6 text-slate-900 dark:text-white">新增消費</h3>
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
                 <div>
                     <label htmlFor="date" className="block text-sm font-medium text-slate-700 dark:text-slate-300">日期</label>

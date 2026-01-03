@@ -1,21 +1,25 @@
 
+import { Session } from '@supabase/supabase-js';
+
 // These are the types for our app's state
 export interface Category {
   id: string;
   name: string;
   color: string;
   created_at: string;
+  user_id: string;
 }
 
 export interface Expense {
   id: string;
   date: string; // YYYY-MM-DD format
   amount: number;
-  merchant: string;
-  item: string;
+  merchant: string | null;
+  item: string | null;
   note?: string;
-  category_id: string;
+  category_id: string | null;
   created_at: string;
+  user_id: string;
 }
 
 export interface JoinedExpense extends Expense {
@@ -35,57 +39,97 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      categories: {
+      profiles: {
         Row: {
-          color: string
-          created_at: string
           id: string
-          name: string
+          updated_at: string
+          app_name: string
         }
         Insert: {
-          color: string
-          created_at?: string
-          id?: string
-          name: string
+          id: string
+          updated_at?: string
+          app_name?: string
         }
         Update: {
-          color?: string
-          created_at?: string
           id?: string
-          name?: string
+          updated_at?: string
+          app_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      categories: {
+        Row: {
+          id: string
+          created_at: string
+          user_id: string
+          name: string
+          color: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          user_id?: string
+          name: string
+          color: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          user_id?: string
+          name?: string
+          color?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       expenses: {
         Row: {
-          amount: number
-          category_id: string
-          created_at: string
-          date: string
           id: string
-          item: string
-          merchant: string
+          created_at: string
+          user_id: string
+          date: string
+          amount: number
+          merchant: string | null
+          item: string | null
           note: string | null
+          category_id: string | null
         }
         Insert: {
-          amount: number
-          category_id: string
-          created_at?: string
-          date: string
           id?: string
-          item: string
-          merchant: string
+          created_at?: string
+          user_id?: string
+          date: string
+          amount: number
+          merchant?: string | null
+          item?: string | null
           note?: string | null
+          category_id?: string | null
         }
         Update: {
-          amount?: number
-          category_id?: string
-          created_at?: string
-          date?: string
           id?: string
-          item?: string
-          merchant?: string
+          created_at?: string
+          user_id?: string
+          date?: string
+          amount?: number
+          merchant?: string | null
+          item?: string | null
           note?: string | null
+          category_id?: string | null
         }
         Relationships: [
           {
@@ -95,6 +139,13 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "expenses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
         ]
       }
     }
