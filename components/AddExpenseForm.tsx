@@ -26,15 +26,10 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ categories, onAddExpens
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!date || !categoryId || !amount) {
-            alert('請填寫日期、類別和金額。');
-            return;
-        }
-        // FIX: The type for onAddExpense now correctly matches this object, which doesn't include user_id.
         onAddExpense({
             date,
-            category_id: categoryId,
-            amount: parseFloat(amount),
+            category_id: categoryId || null,
+            amount: parseFloat(amount) || 0,
             merchant,
             item,
             note: note || null,
@@ -54,17 +49,17 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ categories, onAddExpens
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
                 <div>
                     <label htmlFor="date" className="block text-sm font-medium text-slate-700 dark:text-slate-300">日期</label>
-                    <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} className={commonInputClass} required />
+                    <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} className={commonInputClass} />
                 </div>
                 <div>
                     <label htmlFor="category" className="block text-sm font-medium text-slate-700 dark:text-slate-300">類別</label>
-                    <select id="category" value={categoryId} onChange={e => setCategoryId(e.target.value)} className={commonInputClass} required disabled={categories.length === 0}>
-                         {categories.length === 0 ? <option>請先新增一個類別</option> : categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                    <select id="category" value={categoryId} onChange={e => setCategoryId(e.target.value)} className={commonInputClass}>
+                         {categories.length === 0 ? <option value="">請先新增一個類別</option> : categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                     </select>
                 </div>
                 <div>
                     <label htmlFor="amount" className="block text-sm font-medium text-slate-700 dark:text-slate-300">金額</label>
-                    <input type="number" id="amount" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" step="0.01" className={commonInputClass} required />
+                    <input type="number" id="amount" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" step="0.01" className={commonInputClass} />
                 </div>
                  <div>
                     <label htmlFor="merchant" className="block text-sm font-medium text-slate-700 dark:text-slate-300">商家 (可選)</label>
@@ -78,7 +73,7 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({ categories, onAddExpens
                     <label htmlFor="note" className="block text-sm font-medium text-slate-700 dark:text-slate-300">備註 (可選)</label>
                     <textarea id="note" value={note} onChange={e => setNote(e.target.value)} rows={2} className={commonInputClass}></textarea>
                 </div>
-                <button type="submit" className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 transition-colors" disabled={categories.length === 0}>
+                <button type="submit" className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 transition-colors">
                     <PlusIcon /> 新增花費
                 </button>
             </form>

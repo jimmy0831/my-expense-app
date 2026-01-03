@@ -1,26 +1,46 @@
 
 import React, { useState } from 'react';
 import { Category } from '../types';
-import { PlusIcon, TrashIcon } from './icons';
+import { PlusIcon, TrashIcon, CheckIcon, XIcon } from './icons';
 
 interface CategoryManagerProps {
     categories: Category[];
     onAddCategory: (name: string, color: string) => void;
+    onUpdateCategory: (id: string, name: string, color: string) => void;
     onDeleteCategory: (id: string) => void;
 }
 
-const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onAddCategory, onDeleteCategory }) => {
+const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onAddCategory, onUpdateCategory, onDeleteCategory }) => {
     const [name, setName] = useState('');
     const [color, setColor] = useState('#f87171');
 
+    const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+    const [editName, setEditName] = useState('');
+    const [editColor, setEditColor] = useState('');
+
     const handleAdd = (e: React.FormEvent) => {
         e.preventDefault();
-        if (name.trim()) {
-            onAddCategory(name.trim(), color);
-            setName('');
-        }
+        onAddCategory(name, color);
+        setName('');
     };
     
+    const handleEditClick = (category: Category) => {
+        setEditingCategoryId(category.id);
+        setEditName(category.name);
+        setEditColor(category.color);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingCategoryId(null);
+    };
+
+    const handleUpdate = () => {
+        if (editingCategoryId) {
+            onUpdateCategory(editingCategoryId, editName, editColor);
+            setEditingCategoryId(null);
+        }
+    };
+
     const commonInputClass = "mt-1 block w-full rounded-lg border-slate-300 bg-white dark:bg-slate-700/80 dark:border-slate-600 px-3 py-2 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm";
 
     return (
@@ -50,14 +70,40 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onAddCate
 
             <div className="mt-8 flex-grow space-y-3 overflow-y-auto pr-2">
                 {categories.map(cat => (
-                    <div key={cat.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                        <span className="flex items-center gap-3 text-sm font-medium">
-                            <span className="w-5 h-5 rounded-full border border-white/20" style={{ backgroundColor: cat.color }}></span>
-                            {cat.name}
-                        </span>
-                        <button onClick={() => onDeleteCategory(cat.id)} className="text-slate-400 hover:text-red-500 transition-colors">
-                            <TrashIcon />
-                        </button>
+                    <div key={cat.id}>
+                        {editingCategoryId === cat.id ? (
+                            // Edit Mode
+                            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg">
+                                <input 
+                                    type="color" 
+                                    value={editColor} 
+                                    onChange={e => setEditColor(e.target.value)}
+                                    className="p-0 w-10 h-10 block bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer flex-shrink-0"
+                                />
+                                <input 
+                                    type="text" 
+                                    value={editName}
+                                    onChange={e => setEditName(e.target.value)}
+                                    className="block w-full rounded-lg border-slate-300 bg-white dark:bg-slate-600 dark:border-slate-500 px-3 py-2 shadow-sm sm:text-sm"
+                                />
+                                <button onClick={handleUpdate} className="p-2 text-slate-400 hover:text-green-500 transition-colors"><CheckIcon /></button>
+                                <button onClick={handleCancelEdit} className="p-2 text-slate-400 hover:text-slate-100 transition-colors"><XIcon /></button>
+                            </div>
+                        ) : (
+                            // Display Mode
+                            <div onClick={() => handleEditClick(cat)} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+                                <span className="flex items-center gap-3 text-sm font-medium">
+                                    <span className="w-5 h-5 rounded-full border border-white/20" style={{ backgroundColor: cat.color }}></span>
+                                    {cat.name}
+                                </span>
+                                <div className="flex items-center">
+                                    <span className="text-xs text-slate-400 mr-2 hidden sm:block">編輯</span>
+                                    <button onClick={(e) => { e.stopPropagation(); onDeleteCategory(cat.id); }} className="text-slate-400 hover:text-red-500 transition-colors">
+                                        <TrashIcon />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>

@@ -9,6 +9,8 @@ const urlsToCache = [
   '/App.tsx',
   '/types.ts',
   '/supabaseClient.ts',
+  '/components/Auth.tsx',
+  '/components/AccountManager.tsx',
   '/components/Header.tsx',
   '/components/CalendarView.tsx',
   '/components/AddExpenseForm.tsx',
@@ -18,9 +20,7 @@ const urlsToCache = [
   '/components/icons.tsx',
   '/components/Tabs.tsx',
   '/components/Modal.tsx',
-  '/components/EditExpenseModal.tsx',
-  '/components/Auth.tsx',
-  '/components/AccountManager.tsx'
+  '/components/EditExpenseModal.tsx'
 ];
 
 // Install event: open a cache and add the app shell files to it.

@@ -1,7 +1,6 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { Category, Expense, JoinedExpense } from './types';
+import { Category, Expense, JoinedExpense, PublicUser } from './types';
 import Header from './components/Header';
 import CalendarView from './components/CalendarView';
 import AddExpenseForm from './components/AddExpenseForm';
@@ -16,190 +15,159 @@ import Auth from './components/Auth';
 import AccountManager from './components/AccountManager';
 
 export default function App() {
-    const [session, setSession] = useState<Session | null>(null);
-    const [authLoading, setAuthLoading] = useState(true);
+    const [user, setUser] = useState<PublicUser | null>(null);
     const [appName, setAppName] = useState('MyExpenseApp');
     const [categories, setCategories] = useState<Category[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [modalDate, setModalDate] = useState<string | null>(null);
     const [editingExpense, setEditingExpense] = useState<JoinedExpense | null>(null);
-    const [loading, setLoading] = useState(false); // Only for data fetching, not auth
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('records');
 
-    const fetchData = useCallback(async () => {
-        if (!session) return;
+    const fetchData = useCallback(async (currentUser: PublicUser) => {
+        if (!currentUser) return;
         setLoading(true);
         setError(null);
         try {
-            const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('app_name')
-                .single();
-            if (profileError) throw profileError;
-            if (profileData) {
-                setAppName(profileData.app_name);
-            }
+            // Fetch profile for app name
+            const { data: profileData, error: profileError } = await supabase.from('profiles').select('app_name').eq('id', currentUser.id).single();
+            if (profileError) console.error("Could not fetch profile", profileError);
+            else if (profileData?.app_name) setAppName(profileData.app_name);
 
-            const { data: categoriesData, error: categoriesError } = await supabase.from('categories').select('*').order('created_at');
+            // Fetch categories
+            const { data: categoriesData, error: categoriesError } = await supabase.from('categories').select('*').eq('user_id', currentUser.id).order('created_at');
             if (categoriesError) throw categoriesError;
 
-            const { data: expensesData, error: expensesError } = await supabase.from('expenses').select('*').order('date', { ascending: false });
+            // Fetch expenses
+            const { data: expensesData, error: expensesError } = await supabase.from('expenses').select('*').eq('user_id', currentUser.id).order('date', { ascending: false });
             if (expensesError) throw expensesError;
-
+            
             setCategories(categoriesData || []);
             setExpenses(expensesData || []);
         } catch (err: any) {
-            setError(err.message || '無法讀取資料');
+            setError('資料讀取失敗。請檢查您的網路連線。');
             console.error(err);
         } finally {
             setLoading(false);
         }
-    }, [session]);
-
-    useEffect(() => {
-        setAuthLoading(true);
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setAuthLoading(false);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            if (!session) {
-                setCategories([]);
-                setExpenses([]);
-                setAppName('MyExpenseApp');
-            }
-        });
-
-        return () => subscription.unsubscribe();
     }, []);
-
-    useEffect(() => {
-        if (session) {
-            fetchData();
-        }
-    }, [session, fetchData]);
-
-    const handleAppNameChange = async (newName: string) => {
-        if (!session) return;
-        setAppName(newName);
-        const { error } = await supabase
-            .from('profiles')
-            .update({ app_name: newName })
-            .eq('id', session.user.id);
-        
-        if (error) {
-            setError(error.message);
-        }
-    };
     
-    const handleSignOut = async () => {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-            setError(error.message);
+    // Fetch data whenever the user changes
+    useEffect(() => {
+        if (user) {
+            fetchData(user);
+        } else {
+            // Clear data on logout
+            setCategories([]);
+            setExpenses([]);
+            setAppName('MyExpenseApp');
+            setError(null);
         }
+    }, [user, fetchData]);
+    
+    const handleSignOut = () => {
+        setUser(null);
     }
 
     const handleAccountDelete = useCallback(async () => {
-        const confirmation = window.confirm(
-          '您確定要刪除您的帳號嗎？所有相關資料，包含花費和類別，都將被永久刪除，且此操作無法復原。'
-        );
-        if (!confirmation) return;
-    
-        const finalConfirmation = window.prompt(
-          '此為最後確認。請輸入「DELETE」以永久刪除您的帳號。'
-        );
-        if (finalConfirmation !== 'DELETE') {
-          alert('輸入錯誤，操作已取消。');
-          return;
-        }
-    
-        const { error } = await supabase.rpc('delete_user_account');
-    
-        if (error) {
-          setError(`刪除帳號失敗: ${error.message}`);
-          alert(`刪除帳號失敗: ${error.message}\n\n請確認您已在 Supabase 後台設定 'delete_user_account' 函式。`);
-        } else {
-          // The onAuthStateChange listener will handle session state update automatically.
-          alert('您的帳號已成功刪除。');
-        }
-    }, []);
-
-    const handleAddCategory = useCallback(async (name: string, color: string) => {
-        const { data, error } = await supabase.from('categories').insert([{ name, color }]).select();
-        if (error) {
-            setError(error.message);
-        } else if (data) {
-           setCategories(prev => [...prev, data[0]]);
-        }
-    }, []);
-
-    const handleDeleteCategory = useCallback(async (id: string) => {
-        const { error } = await supabase.from('categories').delete().eq('id', id);
-
-        if (error) {
-             setError(error.message);
-        } else {
-            setExpenses(prev => prev.map(exp => exp.category_id === id ? { ...exp, category_id: null } : exp));
-            setCategories(prev => prev.filter(cat => cat.id !== id));
-        }
-    }, []);
-
-    const handleAddExpense = useCallback(async (expense: Omit<Expense, 'id' | 'created_at' | 'user_id'>) => {
-        const { data, error } = await supabase.from('expenses').insert([expense]).select();
-        if (error) {
-             setError(error.message);
-        } else if (data) {
-            setExpenses(prev => [data[0], ...prev]);
-        }
-    }, []);
-    
-    const handleUpdateExpense = useCallback(async (expenseId: string, updatedData: Omit<Expense, 'id' | 'created_at' | 'user_id'>) => {
-        const { data, error } = await supabase
-            .from('expenses')
-            .update(updatedData)
-            .eq('id', expenseId)
-            .select()
-            .single();
-
-        if (error) {
-            setError(error.message);
-        } else if (data) {
-            setExpenses(prevExpenses =>
-                prevExpenses.map(exp => (exp.id === expenseId ? data : exp))
-            );
-        }
-    }, []);
-
-    const handleDeleteExpense = useCallback(async (expenseId: string) => {
-        if (!window.confirm('確定要刪除這筆紀錄嗎？此操作無法復原。')) {
+        if (!user) {
+            alert("錯誤：無法識別使用者身份，請重新登入。");
             return;
         }
-        
-        const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
 
-        if (error) {
-            setError(error.message);
-        } else {
-            setExpenses(prev => prev.filter(exp => exp.id !== expenseId));
+        if (!window.confirm("您確定要永久刪除您的帳號及所有資料嗎？此操作無法復原。")) {
+            return;
         }
-    }, []);
 
-    const openModalForDate = useCallback((date: string) => {
-        setModalDate(date);
-    }, []);
+        try {
+            setLoading(true);
+            
+            // Explicitly call delete and check the response
+            const { data, error: userDeleteError } = await supabase
+                .from('custom_users')
+                .delete()
+                .eq('id', user.id);
 
-    const closeModal = useCallback(() => {
-        setModalDate(null);
-    }, []);
+            if (userDeleteError) {
+                // If there is any error, we throw it to be caught and displayed below.
+                console.error('Supabase delete error:', userDeleteError);
+                throw userDeleteError;
+            }
+
+            console.log('Supabase delete success response:', data);
+            alert("帳號已成功刪除。您現在將被登出。");
+            setUser(null); // Sign out
+        } catch (err: any) {
+            // This will now catch the thrown error and provide a detailed message.
+            const errorMessage = `刪除帳號失敗，資料庫回傳錯誤：\n\n${err.message}\n\n這通常是資料庫權限問題。請確認您已在 Supabase SQL Editor 中執行了允許刪除的指令。`;
+            alert(errorMessage);
+            console.error("Full error object:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
+
+    const handleAppNameUpdate = useCallback(async (newName: string) => {
+        if (!user) return;
+        setAppName(newName); // Optimistic update
+        const { error } = await supabase.from('profiles').update({ app_name: newName }).eq('id', user.id);
+        if (error) {
+            console.error('Failed to update app name:', error);
+            // You could add logic here to revert the name if the update fails
+        }
+    }, [user]);
+
+    const handleAddCategory = useCallback(async (name: string, color: string) => {
+        if (!user) return;
+        const { error } = await supabase.from('categories').insert({ name, color, user_id: user.id });
+        if (error) alert(`新增類別失敗: ${error.message}`);
+        else fetchData(user);
+    }, [user, fetchData]);
+
+    const handleUpdateCategory = useCallback(async (id: string, name: string, color: string) => {
+        if (!user) return;
+        const { error } = await supabase.from('categories').update({ name, color }).eq('id', id);
+        if (error) alert(`更新類別失敗: ${error.message}`);
+        else fetchData(user);
+    }, [user, fetchData]);
+
+    const handleDeleteCategory = useCallback(async (id: string) => {
+        if (!user) return;
+        const { error } = await supabase.from('categories').delete().eq('id', id);
+        if (error) alert(`刪除類別失敗: ${error.message}`);
+        else fetchData(user);
+    }, [user, fetchData]);
+
+    const handleAddExpense = useCallback(async (expense: Omit<Expense, 'id' | 'created_at' | 'user_id'>) => {
+        if (!user) return;
+        const { error } = await supabase.from('expenses').insert({ ...expense, user_id: user.id });
+        if (error) alert(`新增花費失敗: ${error.message}`);
+        else fetchData(user);
+    }, [user, fetchData]);
+    
+    const handleUpdateExpense = useCallback(async (expenseId: string, updatedData: Omit<Expense, 'id' | 'created_at' | 'user_id'>) => {
+        if (!user) return;
+        const { error } = await supabase.from('expenses').update({ ...updatedData, user_id: user.id }).eq('id', expenseId);
+        if (error) alert(`更新花費失敗: ${error.message}`);
+        else fetchData(user);
+    }, [user, fetchData]);
+
+    const handleDeleteExpense = useCallback(async (expenseId: string) => {
+        if (!user) return;
+        const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
+        if (error) alert(`刪除花費失敗: ${error.message}`);
+        else fetchData(user);
+    }, [user, fetchData]);
+
+    const openModalForDate = useCallback((date: string) => setModalDate(date), []);
+    const closeModal = useCallback(() => setModalDate(null), []);
 
     const joinedExpenses = useMemo<JoinedExpense[]>(() => {
         const categoryMap = new Map(categories.map(cat => [cat.id, cat]));
         return expenses
             .map(exp => {
-                if (!exp.category_id) return null; // Handle expenses with no category
+                if (!exp.category_id) return null;
                 const category = categoryMap.get(exp.category_id);
                 return category ? { ...exp, category } : null;
             })
@@ -212,26 +180,25 @@ export default function App() {
         return joinedExpenses.filter(exp => exp.date === modalDate);
     }, [joinedExpenses, modalDate]);
 
-    const AuthSpinner = () => (
-        <div className="min-h-screen flex justify-center items-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
-        </div>
-    );
+    const handleLoginSuccess = (loggedInUser: PublicUser) => {
+        setUser(loggedInUser);
+    };
 
-    if (authLoading) {
-        return <AuthSpinner />;
-    }
-
-    if (!session) {
-        return <Auth />;
+    if (!user) {
+        return <Auth onLoginSuccess={handleLoginSuccess} />;
     }
 
     return (
         <div className="min-h-screen">
-            <Header appName={appName} onAppNameChange={handleAppNameChange} onSignOut={handleSignOut} userEmail={session.user.email} />
+            <Header appName={appName} onAppNameChange={handleAppNameUpdate} onSignOut={handleSignOut} userEmail={user.email} />
             <main className="p-4 sm:p-6 lg:p-8 pb-24">
-                {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">發生錯誤: {error}</div>}
-                {loading ? (
+                {error && (
+                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                        <p className="font-bold">發生錯誤</p>
+                        <p>{error}</p>
+                    </div>
+                )}
+                {(loading && expenses.length === 0) ? (
                      <div className="flex justify-center items-center h-64">
                         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
                      </div>
@@ -253,7 +220,7 @@ export default function App() {
                         </div>
                          <div className={activeTab === 'settings' ? 'block' : 'hidden'}>
                             <div className="max-w-md mx-auto space-y-8">
-                                <CategoryManager categories={categories} onAddCategory={handleAddCategory} onDeleteCategory={handleDeleteCategory} />
+                                <CategoryManager categories={categories} onAddCategory={handleAddCategory} onUpdateCategory={handleUpdateCategory} onDeleteCategory={handleDeleteCategory} />
                                 <AccountManager onAccountDelete={handleAccountDelete} />
                             </div>
                          </div>

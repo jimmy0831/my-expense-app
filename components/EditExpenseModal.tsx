@@ -35,20 +35,14 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({ isOpen, onClose, ex
         e.preventDefault();
         if (!expenseToEdit) return;
 
-        if (!date || !categoryId || !amount) {
-            alert('請填寫日期、類別和金額。');
-            return;
-        }
-
         const updatedData = {
             date,
-            category_id: categoryId,
-            amount: parseFloat(amount),
+            category_id: categoryId || null,
+            amount: parseFloat(amount) || 0,
             merchant,
             item,
             note: note || null,
         };
-        // FIX: The type for onUpdateExpense now correctly matches updatedData, which doesn't include user_id.
         onUpdateExpense(expenseToEdit.id, updatedData);
         onClose();
     };
@@ -70,17 +64,17 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({ isOpen, onClose, ex
                 <form onSubmit={handleSubmit} className="space-y-5">
                      <div>
                         <label htmlFor="edit-date" className="block text-sm font-medium text-slate-700 dark:text-slate-300">日期</label>
-                        <input type="date" id="edit-date" value={date} onChange={e => setDate(e.target.value)} className={commonInputClass} required />
+                        <input type="date" id="edit-date" value={date} onChange={e => setDate(e.target.value)} className={commonInputClass} />
                     </div>
                     <div>
                         <label htmlFor="edit-category" className="block text-sm font-medium text-slate-700 dark:text-slate-300">類別</label>
-                        <select id="edit-category" value={categoryId} onChange={e => setCategoryId(e.target.value)} className={commonInputClass} required>
+                        <select id="edit-category" value={categoryId} onChange={e => setCategoryId(e.target.value)} className={commonInputClass}>
                             {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label htmlFor="edit-amount" className="block text-sm font-medium text-slate-700 dark:text-slate-300">金額</label>
-                        <input type="number" id="edit-amount" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" step="0.01" className={commonInputClass} required />
+                        <input type="number" id="edit-amount" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" step="0.01" className={commonInputClass} />
                     </div>
                     <div>
                         <label htmlFor="edit-merchant" className="block text-sm font-medium text-slate-700 dark:text-slate-300">商家 (可選)</label>

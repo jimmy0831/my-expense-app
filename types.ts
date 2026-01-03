@@ -1,6 +1,4 @@
 
-import { Session } from '@supabase/supabase-js';
-
 // These are the types for our app's state
 export interface Category {
   id: string;
@@ -26,6 +24,11 @@ export interface JoinedExpense extends Expense {
   category: Category;
 }
 
+export interface PublicUser {
+  id: string;
+  created_at: string;
+  email: string;
+}
 
 // This is the auto-generated type from Supabase, useful for client type safety
 export type Json =
@@ -39,28 +42,59 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
+      custom_users: {
         Row: {
           id: string
-          updated_at: string
-          app_name: string
+          email: string
+          password?: string
+          created_at: string
         }
         Insert: {
-          id: string
-          updated_at?: string
-          app_name?: string
+          id?: string
+          email: string
+          password?: string
+          created_at?: string
         }
         Update: {
           id?: string
+          email?: string
+          password?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          id: string
+          user_id: string
+          updated_at: string
+          app_name: string | null
+        }
+        Insert: {
+          id: string
+          user_id: string
           updated_at?: string
-          app_name?: string
+          app_name?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          updated_at?: string
+          app_name?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
-            referencedRelation: "users"
+            referencedRelation: "custom_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "custom_users"
             referencedColumns: ["id"]
           }
         ]
@@ -76,7 +110,7 @@ export type Database = {
         Insert: {
           id?: string
           created_at?: string
-          user_id?: string
+          user_id: string
           name: string
           color: string
         }
@@ -92,7 +126,7 @@ export type Database = {
             foreignKeyName: "categories_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "custom_users"
             referencedColumns: ["id"]
           }
         ]
@@ -112,7 +146,7 @@ export type Database = {
         Insert: {
           id?: string
           created_at?: string
-          user_id?: string
+          user_id: string
           date: string
           amount: number
           merchant?: string | null
@@ -143,7 +177,7 @@ export type Database = {
             foreignKeyName: "expenses_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "custom_users"
             referencedColumns: ["id"]
           }
         ]
