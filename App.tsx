@@ -211,7 +211,7 @@ export default function App() {
                                     <CalendarView expenses={joinedExpenses} onDateSelect={openModalForDate} selectedDate={modalDate}/>
                                 </div>
                                 <div className="lg:col-span-2 xl:col-span-3">
-                                    <ExpenseList expenses={joinedExpenses} onEdit={setEditingExpense} onDelete={handleDeleteExpense} />
+                                    <ExpenseList expenses={joinedExpenses} />
                                 </div>
                             </div>
                         </div>

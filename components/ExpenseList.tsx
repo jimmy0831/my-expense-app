@@ -19,7 +19,6 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, isModal = false, on
     ) : (
         <div className="text-center text-slate-500 dark:text-slate-400 py-10">
             <p>沒有花費紀錄可顯示。</p>
-            <p className="text-sm">請點擊左側日曆下方的表單來新增一筆花費。</p>
         </div>
     );
 

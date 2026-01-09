@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import ThemeSwitcher from './ThemeSwitcher';
 
 interface HeaderProps {
     appName: string;
@@ -68,6 +69,7 @@ const Header: React.FC<HeaderProps> = ({ appName, onAppNameChange, onSignOut, us
                 </div>
                  <div className="flex items-center gap-4 flex-shrink-0">
                     <span className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block truncate">{userEmail}</span>
+                    <ThemeSwitcher />
                     <button onClick={onSignOut} className="py-2 px-4 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
                         登出
                     </button>
