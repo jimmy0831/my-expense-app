@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Category, Expense } from "../types";
 import { PlusIcon } from "./icons";
 
 interface AddExpenseFormProps {
   categories: Category[];
+  expenses: Expense[];
   onAddExpense: (
     expense: Omit<Expense, "id" | "created_at" | "user_id">,
   ) => void;
@@ -11,6 +12,7 @@ interface AddExpenseFormProps {
 
 const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
   categories,
+  expenses,
   onAddExpense,
 }) => {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
@@ -26,6 +28,24 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
       setCategoryId(categories[0].id);
     }
   }, [categories, categoryId]);
+
+  // 根據當前選擇的類別，提取歷史商家（去重且過濾空值）
+  const merchantSuggestions = useMemo(() => {
+    if (!categoryId) return [];
+    const merchants = expenses
+      .filter((exp) => exp.category_id === categoryId && exp.merchant)
+      .map((exp) => exp.merchant as string);
+    return Array.from(new Set(merchants)).sort();
+  }, [expenses, categoryId]);
+
+  // 根據當前輸入的商家，提取歷史項目（去重且過濾空值）
+  const itemSuggestions = useMemo(() => {
+    if (!merchant) return [];
+    const items = expenses
+      .filter((exp) => exp.merchant === merchant && exp.item)
+      .map((exp) => exp.item as string);
+    return Array.from(new Set(items)).sort();
+  }, [expenses, merchant]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,7 +144,14 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
             className={commonInputClass}
+            list="merchant-suggestions"
+            autoComplete="off"
           />
+          <datalist id="merchant-suggestions">
+            {merchantSuggestions.map((m) => (
+              <option key={m} value={m} />
+            ))}
+          </datalist>
         </div>
         <div>
           <label
@@ -139,7 +166,14 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
             value={item}
             onChange={(e) => setItem(e.target.value)}
             className={commonInputClass}
+            list="item-suggestions"
+            autoComplete="off"
           />
+          <datalist id="item-suggestions">
+            {itemSuggestions.map((i) => (
+              <option key={i} value={i} />
+            ))}
+          </datalist>
         </div>
         <div>
           <label

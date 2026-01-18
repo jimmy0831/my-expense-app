@@ -313,6 +313,7 @@ export default function App() {
                 <div className="lg:col-span-1 xl:col-span-1 space-y-8">
                   <AddExpenseForm
                     categories={categories}
+                    expenses={expenses}
                     onAddExpense={handleAddExpense}
                   />
                   <CalendarView
