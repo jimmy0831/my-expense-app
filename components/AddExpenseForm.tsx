@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Category, Expense } from "../types";
 import { PlusIcon } from "./icons";
+import AutocompleteInput from "./AutocompleteInput";
 
 interface AddExpenseFormProps {
   categories: Category[];
@@ -131,50 +132,20 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
             className={commonInputClass}
           />
         </div>
-        <div>
-          <label
-            htmlFor="merchant"
-            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-          >
-            商家 (可選)
-          </label>
-          <input
-            type="text"
-            id="merchant"
-            value={merchant}
-            onChange={(e) => setMerchant(e.target.value)}
-            className={commonInputClass}
-            list="merchant-suggestions"
-            autoComplete="off"
-          />
-          <datalist id="merchant-suggestions">
-            {merchantSuggestions.map((m) => (
-              <option key={m} value={m} />
-            ))}
-          </datalist>
-        </div>
-        <div>
-          <label
-            htmlFor="item"
-            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-          >
-            項目 (可選)
-          </label>
-          <input
-            type="text"
-            id="item"
-            value={item}
-            onChange={(e) => setItem(e.target.value)}
-            className={commonInputClass}
-            list="item-suggestions"
-            autoComplete="off"
-          />
-          <datalist id="item-suggestions">
-            {itemSuggestions.map((i) => (
-              <option key={i} value={i} />
-            ))}
-          </datalist>
-        </div>
+        <AutocompleteInput
+          id="merchant"
+          label="商家 (可選)"
+          value={merchant}
+          onChange={setMerchant}
+          suggestions={merchantSuggestions}
+        />
+        <AutocompleteInput
+          id="item"
+          label="項目 (可選)"
+          value={item}
+          onChange={setItem}
+          suggestions={itemSuggestions}
+        />
         <div>
           <label
             htmlFor="note"
